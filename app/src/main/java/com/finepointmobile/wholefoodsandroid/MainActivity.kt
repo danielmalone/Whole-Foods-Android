@@ -1,39 +1,45 @@
 package com.finepointmobile.wholefoodsandroid
 
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.util.Log.d
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
 import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.doAsync
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
+
+    val foods: ArrayList<Food> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+        val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = FoodAdapter(generateFoods())
+
+        doAsync {
+            val content = URL("https://jsonplaceholder.typicode.com/albums").readText()
+
+            d("daniel", content)
+
+            val moshi: Moshi = Moshi.Builder().build()
+            val jsonAdapter: JsonAdapter<Album> = moshi.adapter(Album::class.java)
+            val album: Album? = jsonAdapter.fromJson(content)
+            d("daniel", album.toString())
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+    fun generateFoods(): ArrayList<Food> {
+        for (i in 1..200) {
+            foods.add(Food("Orange Banana Smoothie #$i", 2.4))
         }
+        return foods
     }
 }
